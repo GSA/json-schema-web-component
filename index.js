@@ -30,7 +30,7 @@
       ${this.getStyle()}
       <div>
         <h2>Field Definitions</h2>
-        <p color="#555">The schema fields and definitions are listed below.  The optional fields within 'releases' are marked in red but serve to provide additional, helpful information.You can view a sample JSON file here.</p>
+        <p color="#555">The schema fields and definitions are listed below.  The optional fields are marked in red but serve to provide additional, helpful information. You can view a sample JSON file <a href="${this.url}" target="blank">here</a>.</p>
         <div>
           <input type="checkbox" style="text-align: left" onclick="document.getElementById('${this.id}').toggleOptionalFields()">
           <label>Hide optional fields</label>
