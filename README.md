@@ -1,6 +1,10 @@
 # json-schema-web-component
 Web Component that Displays a JSON Schema
 
+## beta
+:warning: This is in beta.  Please find bugs, submit issues, and provide example JSON Schemas, so we can improve it!
+
+
 # demo
 https://gsa.github.io/json-schema-web-component/
 
