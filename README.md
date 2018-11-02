@@ -23,5 +23,8 @@ https://gsa.github.io/json-schema-web-component/
 # screenshot
 ![screenshot](https://raw.githubusercontent.com/GSA/json-schema-web-component/master/Screenshot%202018-11-01%20at%2011.40.36%20PM.png)
 
+# contributing
+Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
+
 # contact
 code@gsa.gov
