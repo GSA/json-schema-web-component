@@ -20,5 +20,8 @@ https://gsa.github.io/json-schema-web-component/
 </html>
 ```
 
+# screenshot
+![screenshot](https://raw.githubusercontent.com/GSA/json-schema-web-component/master/Screenshot%202018-11-01%20at%2011.40.36%20PM.png)
+
 # contact
 code@gsa.gov
