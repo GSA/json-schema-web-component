@@ -39,7 +39,7 @@
           <thead>
             <tr>
               <th class='field-name-column'>Field Name</th>
-              <th>Data Type</th>
+              <th class='data-type-column'>Data Type</th>
               <th>Description</th>
             </tr>
           </thead>
@@ -62,6 +62,8 @@
         return obj.array.description
       } else if (obj.items && obj.items.description) {
         return obj.items.description
+      } else {
+        return ''
       }
     }
 
@@ -88,13 +90,9 @@
     getSection([key, value], isRequired=false, indent=0) {
       try {
         const { items, properties, type } = value;
-        console.error("value:", value);
         const description = this.getDescription(value);
         const required = this.getRequired(value);
-        console.log("required:", required);
-        console.log("starting this.getSection with [key, value]:", [key, value]);
-        const hasDropDown = type === 'array' || type === 'object'
-        console.log("hasDropDown:", hasDropDown)
+        const hasDropDown = this.hasDropDown(value);
         let trClasses = []
         if (indent === 0) trClasses.push('first')
         if (isRequired === false) trClasses.push('optional')
@@ -102,29 +100,24 @@
         const dropDownHTML = hasDropDown ? this.getDropDown('expanded') : this.getDropDown('invisble');
         let html = `<tr class="${trClass}" indent="${indent}">
           <td style="padding-left: ${10+20*indent}px">${dropDownHTML}<div class="field-name-text">${key}</div></td>
-          <td class="data-type"><div>${type}</div></td>
+          <td class="data-type"><div>${(Array.isArray(type) ? type.join(' or ') : type)}</div></td>
           <td><div>${description}</div></td>
         </tr>`
         if (hasDropDown) {
           let entries
-          if (type === 'array' && (items.type === 'array' || items.type === 'object')) {
+          if (type.includes('array') && (items.type.includes('array') || items.type.includes('object'))) {
             entries = Object.entries(items.properties);
-          } else if (type === 'object') {
+          } else if (type.includes('object')) {
             entries = Object.entries(properties);
           }
 
           if (entries) {
             html += entries.map(entry => {
               const [entryKey, entryValue] = entry;
-              console.log("required, entrykey:", [required, entryKey]);
               const itemRequired = Array.isArray(required) && required.includes(entryKey);
-              if (itemRequired) console.log(`${entryKey} is required`);
               return this.getSection(entry, itemRequired, indent+1);
             }).join('');
           }
-        }
-        if (html.includes(',,')) {
-          console.log("html:", [html]);
         }
         return html
       } catch (error) {
@@ -207,7 +200,11 @@
         }
 
         #${id} .field-name-column {
-          width: 40%;
+          width: 35%;
+        }
+
+        #${id} .data-type-column {
+          width: 15%;
         }
 
         #${id} .dropdown {
@@ -234,18 +231,20 @@
       </style>`
     }
 
+    hasDropDown(item) {
+      const { type } = item;
+      return (type.includes('array') && item.items.type !== 'string') || type.includes('object')
+    }
+
     toggleDropDown(event) {
-      console.log("starting toggleDropDown with", event);
       const { target } = event;
       const row = event.target.parentElement.parentElement.parentElement;
-      console.log("row:", row);
       // iterate down rows setting display none to all until hit one with indent equal or less than current
       const indent = Number(row.getAttribute('indent') || 0);
       let sibling = row;
       while (sibling.nextElementSibling) {
         sibling = sibling.nextElementSibling
         const siblingIndent = Number(sibling.getAttribute('indent') || 0);
-        console.log(sibling, "indent is", siblingIndent);
         if (siblingIndent > indent) {
           if (sibling.style.display === 'none') {
             sibling.style.display = null;
@@ -259,10 +258,8 @@
     }
 
     toggleOptionalFields() {
-      console.log("starting toggleOptionalFields");
       const attrName = "hide-optional-fields";
       const currentValue = this.getAttribute(attrName) || 'false';
-      console.log("current is", [currentValue]);
       const newValue = currentValue === 'false' ? 'true' : 'false';
       this.setAttribute(attrName, newValue);
     }
@@ -272,7 +269,6 @@
       if (url !== this.url) {
         this.url = url
         this.getSchema(url).then(schema => {
-          console.log("[json-schema] setting html using", schema)
           this.innerHTML = this.getHTML()
 
           // fix weird bug where commas mysteriously appearing above table
