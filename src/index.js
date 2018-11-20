@@ -24,8 +24,8 @@
     }
 
     getHTML() {
-      const uid = Math.ceil((Math.random() * 10e10).toString())
-      this.id = `schema-viewer-${uid}`
+      const uid = Math.ceil((Math.random() * 10e10).toString());
+      this.id = `schema-viewer-${uid}`;
       return `
       ${this.getStyle()}
       <div>
@@ -47,64 +47,65 @@
             ${Object.entries(this.schema.properties).map(entry => {
               const [key, value] = entry;
               const isRequired = this.schema.required.includes(key);
-              return this.getSection(entry, isRequired);
+              return this.getSection(entry, isRequired, 0);
             })}
           </tbody>
         </table>
       </div>
-      `
+      `;
     }
 
     getDescription(obj) {
       if (obj.description) {
-        return obj.description
+        return obj.description;
       } else if (obj.array && obj.array.description) {
-        return obj.array.description
+        return obj.array.description;
       } else if (obj.items && obj.items.description) {
-        return obj.items.description
+        return obj.items.description;
       } else {
-        return ''
+        return '';
       }
     }
 
     getRequired(obj) {
       if (obj.required) {
-        return obj.required
+        return obj.required;
       } else if (obj.array && obj.array.required) {
-        return obj.array.required
+        return obj.array.required;
       } else if (obj.items && obj.items.required) {
-        return obj.items.required
+        return obj.items.required;
       }
     }
 
     getDropDown(status) {
       if (status === 'collapsed') {
-        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-up"></div></div>`
+        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-up"></div></div>`;
       } else if (status === 'expanded') {
-        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-down"></div></div>`
+        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-down"></div></div>`;
       } else {
-        return `<div class="dropdown"></div>`
+        return `<div class="dropdown"></div>`;
       }
     }
 
-    getSection([key, value], isRequired=false, indent=0) {
+    getSection(entry, isRequired, indent) {
       try {
+        const [key, value] = entry;
         const { items, properties, type } = value;
         const description = this.getDescription(value);
         const required = this.getRequired(value);
         const hasDropDown = this.hasDropDown(value);
-        let trClasses = []
-        if (indent === 0) trClasses.push('first')
-        if (isRequired === false) trClasses.push('optional')
-        const trClass = trClasses.join(' ')
+        let trClasses = [];
+        if (indent === 0) trClasses.push('first');
+        if (isRequired === false) trClasses.push('optional');
+        const trClass = trClasses.join(' ');
         const dropDownHTML = hasDropDown ? this.getDropDown('expanded') : this.getDropDown('invisble');
         let html = `<tr class="${trClass}" indent="${indent}">
           <td style="padding-left: ${10+20*indent}px">${dropDownHTML}<div class="field-name-text">${key}</div></td>
           <td class="data-type"><div>${(Array.isArray(type) ? type.join(' or ') : type)}</div></td>
           <td><div>${description}</div></td>
-        </tr>`
+        </tr>`;
         if (hasDropDown) {
-          let entries
+          let entries;
           if (type.includes('array') && (items.type.includes('array') || items.type.includes('object'))) {
             entries = Object.entries(items.properties);
           } else if (type.includes('object')) {
@@ -119,26 +120,37 @@
             }).join('');
           }
         }
-        return html
+        return html;
       } catch (error) {
         console.error("error in getSection:", error);
         throw error;
       }
     }
 
+    getJSON(url) {
+      return new Promise(resolve => {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            resolve(JSON.parse(xhr.response));
+          }
+        }
+        xhr.open('GET', url, true);
+        xhr.send('');
+      })
+    }
+
     getSchema() {
-      /* global fetch */
-      return fetch(this.url)
-        .then(response => response.json())
+      return this.getJSON(this.url)
         .then(schema => {
-          this.schema = schema
-          return schema
+          this.schema = schema;
+          return schema;
         });
     }
 
     getStyle() {
-      const arrowSize = '8px'
-      const { id } = this
+      const arrowSize = '8px';
+      const { id } = this;
       return `
       <style>
 
@@ -246,7 +258,7 @@
 
     hasDropDown(item) {
       const { type } = item;
-      return (type.includes('array') && item.items.type !== 'string') || type.includes('object')
+      return (type.includes('array') && item.items.type !== 'string') || type.includes('object');
     }
 
     toggleDropDown(event) {
@@ -256,7 +268,7 @@
       const indent = Number(row.getAttribute('indent') || 0);
       let sibling = row;
       while (sibling.nextElementSibling) {
-        sibling = sibling.nextElementSibling
+        sibling = sibling.nextElementSibling;
         const siblingIndent = Number(sibling.getAttribute('indent') || 0);
         if (siblingIndent > indent) {
           if (sibling.style.display === 'none') {
@@ -278,14 +290,14 @@
     }
 
     update() {
-      const url = this.getAttribute('url')
+      const url = this.getAttribute('url');
       if (url !== this.url) {
-        this.url = url
+        this.url = url;
         this.getSchema(url).then(schema => {
-          this.innerHTML = this.getHTML()
+          this.innerHTML = this.getHTML();
 
           // fix weird bug where commas mysteriously appearing above table
-          this.innerHTML = this.innerHTML.replace(/,{3,}/g, '')
+          this.innerHTML = this.innerHTML.replace(/,{3,}/g, '');
         })
       }
     }

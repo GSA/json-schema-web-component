@@ -1,9 +1,10 @@
 {
   "name": "@code.gov/json-schema-web-component",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Web Component that Displays a JSON Schema",
   "main": "index.js",
   "scripts": {
+    "build": "./node_modules/.bin/babel src/index.js -o dist/json-schema.js",
     "demo": "http-server",
     "demo-on-server": "sudo PORT=80 http-server",
     "update-example-schema": "wget https://raw.githubusercontent.com/GSA/code-gov-data/master/schemas/schema-2.0.0.json -O example-schema.json"
@@ -23,5 +24,14 @@
   "bugs": {
     "url": "https://github.com/GSA/json-schema-web-component/issues"
   },
-  "homepage": "https://github.com/GSA/json-schema-web-component#readme"
+  "homepage": "https://github.com/GSA/json-schema-web-component#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-transform-arrow-functions": "^7.0.0",
+    "@babel/plugin-transform-classes": "^7.1.0",
+    "@babel/plugin-transform-destructuring": "^7.1.3",
+    "@babel/plugin-transform-template-literals": "^7.0.0"
+  }
 }

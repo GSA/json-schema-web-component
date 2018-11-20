@@ -3,11 +3,13 @@
   <head>
     <title>JSON Schema Web Component Demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <script src="./index.js"></script>
+    <script src="polyfills/custom-elements.js"></script>
+    <script src="polyfills/babel-polyfill.js"></script>
+    <script src="dist/json-schema.js"></script>
   </head>
   <body>
     <div>
-      <json-schema url="./example-schema.json" />
+      <json-schema url="./example-schema.json"></json-schema>
     </div>
   </body>
 </html>
