@@ -1,11 +1,11 @@
-'use strict';
+/* global customElements */
+/* global HTMLElement */
 
 (function() {
-  /*global HTMLElement*/
   class JSONSchema extends HTMLElement {
     constructor() {
-        // establish prototype chain
-        super();
+      // establish prototype chain
+      super();
     }
 
     static get observedAttributes() {
@@ -24,8 +24,7 @@
     }
 
     getHTML() {
-      const uid = Math.ceil((Math.random() * 10e10).toString());
-      this.id = `schema-viewer-${uid}`;
+      this.id = `schema-viewer-${this.getUID()}`;
       return `
       ${this.getStyle()}
       <div>
@@ -35,23 +34,58 @@
           <input id="json-schema-hide-optional-fields" type="checkbox" style="cursor: pointer; text-align: left" onclick="document.getElementById('${this.id}').toggleOptionalFields()">
           <label for="json-schema-hide-optional-fields" style="cursor: pointer">Hide optional fields</label>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th class='field-name-column'>Field Name</th>
-              <th class='data-type-column'>Data Type</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Object.entries(this.schema.properties).map(entry => {
-              const [key, value] = entry;
-              const isRequired = this.schema.required.includes(key);
-              return this.getSection(entry, isRequired, 0);
-            })}
-          </tbody>
-        </table>
+        <div class="desktop-and-mobile-views">
+          ${this.getDetails()}
+          <table>
+            <thead>
+              <tr>
+                <th class='field-name-column'>Field Name</th>
+                <th class='data-type-column'>Data Type</th>
+                <th class='description-column'>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Object.entries(this.schema.properties).map(entry => {
+                const [key, value] = entry;
+                const isRequired = this.schema.required.includes(key);
+                return this.getSection(entry, isRequired, 0);
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
+      `;
+    }
+
+    updateDetails() {
+      this.querySelector("#mobile-details").outerHTML = this.getDetails();
+    }
+
+    getDetails() {
+      return `
+        <div id="mobile-details">
+          <table>
+            <thead>
+              <tr>
+                <th id='mobile-data-type-column'>Data Type</th>
+                <th class='mobile-description-column'>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mobile-data-type">${this.selectedDataType}</td>
+                <td class="mobile-description">${this.selectedDescription}</td>
+              </tr>
+              <tr>
+                <td class="back" onclick="document.getElementById('${this.id}').hideDetails()">
+                  <div id="back-arrow" class="arrow-left"></div>
+                  <div class="field-name-text">back</div>
+                </td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       `;
     }
 
@@ -87,6 +121,23 @@
       }
     }
 
+    getUID() {
+      return Math.ceil((Math.random() * 10e10).toString());
+    }
+
+    hideDetails() {
+      this.setAttribute("details", "false");
+    }
+
+    showDetails(rowID) {
+      console.log("starting showDetails with", rowID);
+      const row = document.getElementById(rowID);
+      this.setAttribute("details", "true");
+      this.selectedDataType = row.querySelector(".data-type").textContent.trim();
+      this.selectedDescription = row.querySelector(".description").textContent.trim();
+      this.updateDetails();
+    }
+
     getSection(entry, isRequired, indent) {
       try {
         const [key, value] = entry;
@@ -99,10 +150,22 @@
         if (isRequired === false) trClasses.push('optional');
         const trClass = trClasses.join(' ');
         const dropDownHTML = hasDropDown ? this.getDropDown('expanded') : this.getDropDown('invisble');
-        let html = `<tr class="${trClass}" indent="${indent}">
-          <td style="padding-left: ${10+20*indent}px">${dropDownHTML}<div class="field-name-text">${key}</div></td>
-          <td class="data-type"><div>${(Array.isArray(type) ? type.join(' or ') : type)}</div></td>
-          <td><div>${description}</div></td>
+        const rowID = this.getUID();
+        let html = `<tr id="${rowID}" class="${trClass}" indent="${indent}">
+          <td style="padding-left: ${10+20*indent}px">
+            ${dropDownHTML}
+            <div class="field-name-text">${key}</div>
+            <div class="details" onclick="document.getElementById('${this.id}').showDetails('${rowID}')">
+              <div class="details-text">details</div>
+              <div class="details-arrow arrow-right"></div>
+            </div>
+          </td>
+          <td class="data-type">
+            <div>${(Array.isArray(type) ? type.join(' or ') : type)}</div>
+          </td>
+          <td class="description">
+            <div>${description}</div>
+          </td>
         </tr>`;
         if (hasDropDown) {
           let entries;
@@ -153,7 +216,6 @@
       const { id } = this;
       return `
       <style>
-
         json-schema[hide-optional-fields='true'] tr.optional {
           display: none;
         }
@@ -161,6 +223,12 @@
         #${id} > div {
           background: white;
           padding: 15px;
+          position: relative;
+        }
+
+        #${id} .desktop-and-mobile-views {
+          overflow: hidden;
+          position: relative;
         }
 
         #${id} input {
@@ -169,24 +237,28 @@
           vertical-align: sub;
         }
 
-        #${id} [class*=arrow] {
+        #${id} [class*=arrow-] {
           cursor: pointer;
+          height: 0;
+          width: 0;
         }
 
         #${id} .arrow-down {
-          width: 0;
-          height: 0;
           border-left: ${arrowSize} solid transparent;
           border-right: ${arrowSize} solid transparent;
           border-top: ${arrowSize} solid #000;
         }
 
         #${id} .arrow-left {
-          width: 0;
-          height: 0;
           border-top: ${arrowSize} solid transparent;
           border-bottom: ${arrowSize} solid transparent;
           border-right: ${arrowSize} solid #000;
+        }
+
+        #${id} .arrow-right {
+          border-top: ${arrowSize} solid transparent;
+          border-bottom: ${arrowSize} solid transparent;
+          border-left: ${arrowSize} solid #000;
         }
 
         #${id} th {
@@ -238,7 +310,7 @@
           width: 2rem;
         }
 
-        #${id} .data-type {
+        #${id} .data-type, #${id} .mobile-data-type {
           text-align: center;
         }
 
@@ -252,6 +324,84 @@
 
         #${id} tr.optional td {
           color: rgb(153, 0, 51);
+        }
+
+        #${id} .details {
+          display: none;
+        }
+
+        #${id} #mobile-details {
+          background: white;
+          display: block;
+          height: 100%;
+          position: absolute;
+          transition: 2s;
+          transform: translateX(-600px);
+          width: 100%;
+        }
+
+        /* mobile view */
+        @media screen and (max-width: 600px) {
+          #${id} th.data-type-column,
+          #${id} th.description-column,
+          #${id} td.data-type,
+          #${id} td.description
+          {
+            display: none;
+          }
+
+          #${id} .details {
+            color: black;
+            cursor: pointer;
+            display: inline-block;
+            float: right;
+          }
+
+          #${id} .details-text {
+            display: inline-block;
+            margin-right: 5px;
+          }
+
+          #${id} .details-arrow, #${id} #back-arrow {
+            display: inline-block;
+            vertical-align: top;
+          }
+
+          #${id} #back-arrow {
+            margin-right: 5px;
+          }
+
+          #${id}[details=true] #mobile-details {
+            transition: 2s;
+            transform: translateX(0);
+          }
+
+          #${id} .dropdown {
+            padding-left: .15rem;
+            width: 1rem;
+          }
+        }
+
+        #${id} td.back {
+          cursor: pointer;
+          text-align: center;
+        }
+
+        #${id} td.back > div {
+          display: inline-block;
+        }
+
+        #${id} td.back:hover {
+          background: #323A45;
+          color: white;
+        }
+
+        #${id} td.back:hover .arrow-left {
+          border-right-color: white;
+        }
+
+        #mobile-data-type-column {
+          min-width: 75px;
         }
       </style>`
     }
@@ -304,7 +454,5 @@
 
   }
 
-  // let the browser know about the custom element
-  /*global customElements*/
   customElements.define('json-schema', JSONSchema);
 })();
