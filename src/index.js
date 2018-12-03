@@ -72,7 +72,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr style="background-color: ${this.selectedBackgroundColor}">
                 <td class="mobile-data-type">${this.selectedDataType}</td>
                 <td class="mobile-description">${this.selectedDescription}</td>
               </tr>
@@ -81,7 +81,6 @@
                   <div id="back-arrow" class="arrow-left"></div>
                   <div class="field-name-text">back</div>
                 </td>
-                <td></td>
               </tr>
             </tbody>
           </table>
@@ -113,9 +112,9 @@
 
     getDropDown(status) {
       if (status === 'collapsed') {
-        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-up"></div></div>`;
+        return `<div class='dropdown' status=${status} onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-up-or-down"></div></div>`;
       } else if (status === 'expanded') {
-        return `<div class='dropdown' onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-down"></div></div>`;
+        return `<div class='dropdown' status=${status} onclick="document.getElementById('${this.id}').toggleDropDown(event)"><div class="arrow-up-or-down"></div></div>`;
       } else {
         return `<div class="dropdown"></div>`;
       }
@@ -130,11 +129,11 @@
     }
 
     showDetails(rowID) {
-      console.log("starting showDetails with", rowID);
       const row = document.getElementById(rowID);
       this.setAttribute("details", "true");
       this.selectedDataType = row.querySelector(".data-type").textContent.trim();
       this.selectedDescription = row.querySelector(".description").textContent.trim();
+      this.selectedBackgroundColor = window.getComputedStyle(row).backgroundColor;
       this.updateDetails();
     }
 
@@ -142,7 +141,7 @@
       try {
         const [key, value] = entry;
         const { items, properties, type } = value;
-        const description = this.getDescription(value);
+        const description = this.prettify(this.getDescription(value));
         const required = this.getRequired(value);
         const hasDropDown = this.hasDropDown(value);
         let trClasses = [];
@@ -213,6 +212,7 @@
 
     getStyle() {
       const arrowSize = '8px';
+      const borderColor = 'lightgray';
       const { id } = this;
       return `
       <style>
@@ -227,7 +227,6 @@
         }
 
         #${id} .desktop-and-mobile-views {
-          overflow: hidden;
           position: relative;
         }
 
@@ -241,6 +240,12 @@
           cursor: pointer;
           height: 0;
           width: 0;
+        }
+
+        #${id} .arrow-up {
+          border-left: ${arrowSize} solid transparent;
+          border-right: ${arrowSize} solid transparent;
+          border-top: ${arrowSize} solid #000;
         }
 
         #${id} .arrow-down {
@@ -263,6 +268,10 @@
 
         #${id} th {
           background: #323A45;
+          border-bottom: 1px solid ${borderColor};
+          border-left: 1px solid ${borderColor};
+          border-right: 1px solid ${borderColor};
+          box-sizing: border-box;
           color: white;
           padding: .75rem 2rem;
         }
@@ -281,9 +290,10 @@
         }
 
         #${id} td {
-          border-bottom: 1px solid lightgray;
-          border-left: 1px solid lightgray;
-          border-right: 1px solid lightgray;
+          border-bottom: 1px solid ${borderColor};
+          border-left: 1px solid ${borderColor};
+          border-right: 1px solid ${borderColor};
+          box-sizing: border-box;
           padding: 10px;
         }
 
@@ -310,6 +320,18 @@
           width: 2rem;
         }
 
+        #${id} .dropdown[status=expanded] > div {
+          border-left: ${arrowSize} solid transparent;
+          border-right: ${arrowSize} solid transparent;
+          border-top: ${arrowSize} solid black;
+        }
+
+        #${id} .dropdown[status=collapsed] > div {
+          border-bottom: ${arrowSize} solid black;
+          border-left: ${arrowSize} solid transparent;
+          border-right: ${arrowSize} solid transparent;
+        }
+
         #${id} .data-type, #${id} .mobile-data-type {
           text-align: center;
         }
@@ -331,13 +353,7 @@
         }
 
         #${id} #mobile-details {
-          background: white;
-          display: block;
-          height: 100%;
-          position: absolute;
-          transition: 2s;
-          transform: translateX(-600px);
-          width: 100%;
+          display: none;
         }
 
         /* mobile view */
@@ -371,9 +387,25 @@
             margin-right: 5px;
           }
 
+          #${id} #mobile-details {
+            background: white;
+            bottom: 0;
+            display: block;
+            height: 100%;
+            left: 0;
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            transition: .25s ease;
+            width: 0;
+          }
+
+          #${id}:not([details=true]) #mobile-details {
+            width: 0;
+          }
+
           #${id}[details=true] #mobile-details {
-            transition: 2s;
-            transform: translateX(0);
+            width: 100%;
           }
 
           #${id} .dropdown {
@@ -383,7 +415,10 @@
         }
 
         #${id} td.back {
+          border: none;
           cursor: pointer;
+          padding-bottom: 15px;
+          padding-top: 15px;
           text-align: center;
         }
 
@@ -414,6 +449,12 @@
     toggleDropDown(event) {
       const { target } = event;
       const row = event.target.parentElement.parentElement.parentElement;
+
+      const dropdownDiv = target.parentElement;
+      const status = dropdownDiv.getAttribute('status');
+      if (status === 'collapsed') dropdownDiv.setAttribute('status','expanded');
+      else if (status === 'expanded') dropdownDiv.setAttribute('status','collapsed');
+
       // iterate down rows setting display none to all until hit one with indent equal or less than current
       const indent = Number(row.getAttribute('indent') || 0);
       let sibling = row;
@@ -450,6 +491,24 @@
           this.innerHTML = this.innerHTML.replace(/,{3,}/g, '');
         })
       }
+    }
+
+    prettify(text) {
+      text = this.urlify(text)
+
+      // convert (1) cost: to \n\t(1) <b>cost</b>:
+      const bulletRegex = /\(\d{1,2}\) [A-Za-z]{1,25}:/g;
+      return text.replace(bulletRegex, match => {
+        return "<br/>" + match.replace(/[A-Za-z]{1,25}/, name => `<b>${name}</b>`);
+      });
+    }
+
+    // https://stackoverflow.com/questions/1500260/detect-urls-in-text-with-javascript
+    urlify(text) {
+      const urlRegex = /(https?:\/\/[^\s']+)/g;
+      return text.replace(urlRegex, url => {
+        return `<a href="${url}" target="_blank">${url}</a>`;
+      });
     }
 
   }

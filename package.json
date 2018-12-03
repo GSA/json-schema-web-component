@@ -4,7 +4,7 @@
   "description": "Web Component that Displays a JSON Schema",
   "main": "index.js",
   "scripts": {
-    "build": "./node_modules/.bin/babel src/index.js -o dist/json-schema.js",
+    "build": "npx babel src/index.js --watch --out-file dist/json-schema.js",
     "demo": "http-server",
     "demo-on-server": "sudo PORT=80 http-server",
     "update-example-schema": "wget https://raw.githubusercontent.com/GSA/code-gov-data/master/schemas/schema-2.0.0.json -O example-schema.json"
