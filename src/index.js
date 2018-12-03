@@ -132,7 +132,7 @@
       const row = document.getElementById(rowID);
       this.setAttribute("details", "true");
       this.selectedDataType = row.querySelector(".data-type").textContent.trim();
-      this.selectedDescription = row.querySelector(".description").textContent.trim();
+      this.selectedDescription = this.prettify(row.querySelector(".description").textContent.trim());
       this.selectedBackgroundColor = window.getComputedStyle(row).backgroundColor;
       this.updateDetails();
     }
@@ -317,7 +317,7 @@
         #${id} .dropdown {
           display: inline-block;
           padding-left: .25rem;
-          width: 2rem;
+          width: 30px;
         }
 
         #${id} .dropdown[status=expanded] > div {
@@ -410,7 +410,7 @@
 
           #${id} .dropdown {
             padding-left: .15rem;
-            width: 1rem;
+            width: 20px;
           }
         }
 
