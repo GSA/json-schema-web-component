@@ -63,6 +63,7 @@
 
     getDetails() {
       return `
+        <div id="mobile-details-overlay"></div>
         <div id="mobile-details">
           <table>
             <thead>
@@ -390,22 +391,26 @@
           #${id} #mobile-details {
             background: white;
             bottom: 0;
-            display: block;
-            height: 100%;
             left: 0;
             overflow: hidden;
-            position: absolute;
+            opacity: 0;
+            padding: 15px;
+            position: fixed;
+            transition: 2s;
             right: 0;
-            transition: .25s ease;
-            width: 0;
+            top: 0;
+            z-index: -10;
           }
 
           #${id}:not([details=true]) #mobile-details {
-            width: 0;
+            display: none;
+            opacity: 0;
           }
 
           #${id}[details=true] #mobile-details {
-            width: 100%;
+            display: block;
+            opacity: 1;
+            z-index: 11;
           }
 
           #${id} .dropdown {
