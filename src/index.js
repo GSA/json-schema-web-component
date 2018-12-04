@@ -405,12 +405,12 @@
           }
 
           #${id} #mobile-details-title {
+            font-weight: bold;
+            font-size: 1.75em;
             margin-bottom: 15px;
             overflow: hidden;
             text-align: center;
             text-overflow: ellipsis;
-            font-weight: bold;
-            font-size: 1.75em;
           }
 
           #${id}:not([details=true]) #mobile-details {
