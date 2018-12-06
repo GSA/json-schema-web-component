@@ -65,6 +65,7 @@
       return `
         <div id="mobile-details-overlay"></div>
         <div id="mobile-details">
+          <div id="mobile-details-title">${this.selectedMobileDetailsTitle}</div>
           <table>
             <thead>
               <tr>
@@ -133,6 +134,7 @@
       const row = document.getElementById(rowID);
       this.setAttribute("details", "true");
       this.selectedDataType = row.querySelector(".data-type").textContent.trim();
+      this.selectedMobileDetailsTitle = row.querySelector('.field-name-text').textContent.trim();
       this.selectedDescription = this.prettify(row.querySelector(".description").textContent.trim());
       this.selectedBackgroundColor = window.getComputedStyle(row).backgroundColor;
       this.updateDetails();
@@ -392,7 +394,7 @@
             background: white;
             bottom: 0;
             left: 0;
-            overflow: hidden;
+            overflow: scroll;
             opacity: 0;
             padding: 15px;
             position: fixed;
@@ -400,6 +402,15 @@
             right: 0;
             top: 0;
             z-index: -10;
+          }
+
+          #${id} #mobile-details-title {
+            font-weight: bold;
+            font-size: 1.75em;
+            margin-bottom: 15px;
+            overflow: hidden;
+            text-align: center;
+            text-overflow: ellipsis;
           }
 
           #${id}:not([details=true]) #mobile-details {
